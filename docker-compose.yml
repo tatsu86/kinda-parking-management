@@ -1,0 +1,38 @@
+version: "3"
+services:
+  db:
+    image: mariadb:10.4
+    container_name: "kinda-parking-management-db"
+    volumes:
+      - ./data:/var/lib/mysql
+#      - ./db/my.cnf:/etc/mysql/conf.d/my.cnf
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: kinda-parking-management
+      MYSQL_USER: docker
+      MYSQL_PASSWORD: docker
+      TZ: 'Asia/Tokyo'
+    ports:
+      - "3306:3306"
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:5
+    container_name: kinda-parking-management-phpmyadmin
+    links:
+      - db
+    ports:
+      - 3000:80
+    volumes:
+      - ./docker/phpmyadmin/sessions:/sessions
+    environment:
+      - PMA_ARBITRARY=1
+      - PMA_HOSTS=db
+      - PMA_USER=docker
+      - PMA_PASSWORD=docker
+  app:
+    build: ./php
+    container_name: "kinda-parking-management-app"
+    volumes:
+      - ./laravel:/var/www/html
+      - ./php/vhost.conf:/etc/apache2/conf-enabled/vhost.conf
+    ports:
+      - "8080:80"
